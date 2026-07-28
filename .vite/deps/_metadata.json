@@ -1,0 +1,40 @@
+{
+  "hash": "37ea00a6",
+  "configHash": "63eaae69",
+  "lockfileHash": "4193c00f",
+  "browserHash": "935b4241",
+  "optimized": {
+    "react": {
+      "src": "../../node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "53962c96",
+      "needsInterop": true
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "dfe34212",
+      "needsInterop": true
+    },
+    "zustand": {
+      "src": "../../node_modules/zustand/esm/index.mjs",
+      "file": "zustand.js",
+      "fileHash": "36c0c3f6",
+      "needsInterop": false
+    },
+    "react-konva": {
+      "src": "../../node_modules/react-konva/es/ReactKonva.js",
+      "file": "react-konva.js",
+      "fileHash": "730399ff",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-BUGYBXYE": {
+      "file": "chunk-BUGYBXYE.js"
+    },
+    "chunk-JRE55LYH": {
+      "file": "chunk-JRE55LYH.js"
+    }
+  }
+}
