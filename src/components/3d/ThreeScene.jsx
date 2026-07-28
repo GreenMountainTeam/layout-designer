@@ -4,9 +4,7 @@ import { OrbitControls, Grid } from "@react-three/drei";
 import * as THREE from "three";
 import { useStore } from "../../store.js";
 
-// ===== 坐标换算 =====
-// 2D 里 (0,0) 在区域左上角;3D 里区域中心在世界原点。
-// 所以要把 mm 坐标减去区域一半,再转成米(/1000)。
+// ===== 坐标换算:2D左上角原点 -> 3D区域中心原点 =====
 function useMmToWorld() {
   const area = useStore((s) => s.area);
   const x2w = (xmm) => (xmm - area.w / 2) / 1000;
@@ -14,12 +12,10 @@ function useMmToWorld() {
   return { x2w, z2w, area };
 }
 
-// ===== 单个对象(盒子) =====
-function BoxObject({ object, selected, x2w, z2w }) {
+// ===== 普通对象(盒子) =====
+function BoxObject({ object, selected, x2w, z2w, onSelect }) {
   const color = selected ? "#ff44aa" : object.color || "#cccccc";
   const hMeter = Math.max(0.05, (object.h || 100) / 1000);
-
-  // 2D 是左上角坐标,3D 盒子按中心定位:corner + 半宽/半深
   const cxmm = object.x + object.w / 2;
   const cymm = object.y + object.d / 2;
 
@@ -31,6 +27,10 @@ function BoxObject({ object, selected, x2w, z2w }) {
         z2w(cymm)
       ]}
       rotation={[0, (-(object.rotation || 0) * Math.PI) / 180, 0]}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(object.id);
+      }}
     >
       <boxGeometry args={[object.w / 1000, hMeter, object.d / 1000]} />
       <meshStandardMaterial
@@ -44,7 +44,48 @@ function BoxObject({ object, selected, x2w, z2w }) {
   );
 }
 
-// ===== 墙(折线拆成段) =====
+// ===== 门窗立面(竖立在墙上、底部贴地) =====
+function OpeningObject({ object, selected, x2w, z2w, onSelect }) {
+  const isWindow = object.type === "window" || object.type === "bay_window";
+  const hMeter = Math.max(0.1, (object.h || 2100) / 1000);
+  const cxmm = object.x + object.w / 2;
+  const cymm = object.y + object.d / 2;
+
+  // 窗:底部离地 ~900mm;门:落地
+  const sillMeter = isWindow ? 0.9 : 0;
+
+  const color = selected
+    ? "#ff44aa"
+    : isWindow
+    ? "#7dd3fc"
+    : "#b45309"; // 门=木色
+
+  return (
+    <mesh
+      position={[
+        x2w(cxmm),
+        sillMeter + hMeter / 2,
+        z2w(cymm)
+      ]}
+      rotation={[0, (-(object.rotation || 0) * Math.PI) / 180, 0]}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(object.id);
+      }}
+    >
+      <boxGeometry args={[object.w / 1000, hMeter, object.d / 1000]} />
+      <meshStandardMaterial
+        color={color}
+        transparent={isWindow}
+        opacity={isWindow ? 0.45 : 1}
+        emissive={selected ? "#ff44aa" : "#000000"}
+        emissiveIntensity={selected ? 0.4 : 0}
+      />
+    </mesh>
+  );
+}
+
+// ===== 墙 =====
 function WallMesh({ wall, x2w, z2w }) {
   const segments = [];
   for (let i = 0; i < wall.points.length - 1; i++) {
@@ -83,11 +124,11 @@ function Floor({ area }) {
   );
 }
 
-// ===== 区域边界框(蓝色线框,一眼看出是否超界) =====
+// ===== 区域边界框 =====
 function AreaBox({ area }) {
   const w = area.w / 1000;
   const d = area.d / 1000;
-  const h = 2.8; // 默认墙高参考值
+  const h = 2.8;
   const geo = React.useMemo(
     () => new THREE.EdgesGeometry(new THREE.BoxGeometry(w, h, d)),
     [w, h, d]
@@ -103,7 +144,7 @@ function AreaBox({ area }) {
 function CameraRig({ view, area, controlsRef }) {
   const { camera } = useThree();
   useEffect(() => {
-    if (view === "free") return; // 自由模式不强制
+    if (view === "free") return;
     const span = Math.max(area.w, area.d) / 1000;
     if (view === "top") {
       camera.position.set(0, span * 1.3, 0.001);
@@ -123,6 +164,7 @@ export default function ThreeScene() {
   const objects = useStore((s) => s.objects);
   const walls = useStore((s) => s.walls);
   const selectedId = useStore((s) => s.selectedId);
+  const select = useStore((s) => s.select);
   const { x2w, z2w, area } = useMmToWorld();
   const [view, setView] = useState("iso");
   const controlsRef = useRef();
@@ -131,7 +173,6 @@ export default function ThreeScene() {
 
   return (
     <div style={{ flex: 1, background: "#111827", position: "relative" }}>
-      {/* 视角切换按钮 */}
       <div style={btnBar}>
         {[
           ["top", "俯视"],
@@ -148,9 +189,31 @@ export default function ThreeScene() {
         ))}
       </div>
 
-      <Canvas shadows camera={{ position: [span * 0.8, span * 0.6, span * 0.8], fov: 50, near: 0.1, far: span * 20 }}>
+      <Canvas
+        shadows
+        camera={{
+          position: [span * 0.8, span * 0.6, span * 0.8],
+          fov: 50,
+          near: 0.1,
+          far: span * 20
+        }}
+      >
         <ambientLight intensity={1} />
-        <directionalLight position={[span, span, span * 0.6]} intensity={1.5} castShadow />
+        <directionalLight
+          position={[span, span, span * 0.6]}
+          intensity={1.5}
+          castShadow
+        />
+
+        {/* 点击空白处取消选中 */}
+        <mesh
+          position={[0, -0.01, 0]}
+          rotation={[-Math.PI / 2, 0, 0]}
+          onClick={() => select(null)}
+        >
+          <planeGeometry args={[span * 20, span * 20]} />
+          <meshBasicMaterial visible={false} />
+        </mesh>
 
         <Floor area={area} />
         <AreaBox area={area} />
@@ -166,15 +229,27 @@ export default function ThreeScene() {
           <WallMesh key={wall.id} wall={wall} x2w={x2w} z2w={z2w} />
         ))}
 
-        {objects.map((object) => (
-          <BoxObject
-            key={object.id}
-            object={object}
-            selected={object.id === selectedId}
-            x2w={x2w}
-            z2w={z2w}
-          />
-        ))}
+        {objects.map((object) =>
+          object.isOpening ? (
+            <OpeningObject
+              key={object.id}
+              object={object}
+              selected={object.id === selectedId}
+              x2w={x2w}
+              z2w={z2w}
+              onSelect={select}
+            />
+          ) : (
+            <BoxObject
+              key={object.id}
+              object={object}
+              selected={object.id === selectedId}
+              x2w={x2w}
+              z2w={z2w}
+              onSelect={select}
+            />
+          )
+        )}
 
         <CameraRig view={view} area={area} controlsRef={controlsRef} />
         <OrbitControls ref={controlsRef} makeDefault />
