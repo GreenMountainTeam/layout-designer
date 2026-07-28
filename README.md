@@ -37,6 +37,8 @@ cd layout-designer
 # 2. 安装依赖(第一次会下载 react/konva 等,需联网)
 npm install
 
+## npm install three @react-three/fiber@8.17.10 @react-three/drei@9.122.0
+
 # 3. 启动开发服务器(会自动打开浏览器 http://localhost:5173)
 npm run dev
 ```
