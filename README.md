@@ -41,6 +41,11 @@ npm install
 
 # 3. 启动开发服务器(会自动打开浏览器 http://localhost:5173)
 npm run dev
+
+npm run dev -- --host 0.0.0.0 --allowedHosts all
+
+npm run dev -- --host --port 5173
+
 ```
 
 如果浏览器没自动打开,手动访问终端里显示的地址(通常是 http://localhost:5173)。

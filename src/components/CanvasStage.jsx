@@ -2,25 +2,27 @@ import React, { useRef, useEffect, useMemo, useState } from 'react'
 import { Stage, Layer, Rect, Text, Line, Group, Transformer, Arc, Circle } from 'react-konva'
 import { useStore } from '../store.js'
 import { detectCollisions } from '../utils/collision.js'
-import { snapGrid, edgeSnap, snapToWall } from '../utils/snapping.js'
+import { snapGrid, edgeSnap } from '../utils/snapping.js'
+import { projectOpeningToWall, computeBaseY, footprint, CONTAINER_H } from '../utils/layout.js'
 import { FLOOR_COLOR } from '../catalog.js'
 
-function RectNode({ o, px, ox, oy, isSel, collided, onSelect, onDragEnd, onTransformEnd, onDragMove }) {
+function RectNode({ o, px, ox, oy, isSel, collided, over, onSelect, onDragStart, onDragEnd, onDragMove }) {
   const ref = useRef(); const trRef = useRef()
   useEffect(() => {
     if (isSel && trRef.current && ref.current) { trRef.current.nodes([ref.current]); trRef.current.getLayer().batchDraw() }
   }, [isSel])
   const wPx = o.w * px, dPx = o.d * px
+  const stroke = collided || over ? '#dc2626' : isSel ? '#2563eb' : '#374151'
   return (
     <>
       <Group ref={ref} x={ox + o.x * px} y={oy + o.y * px} rotation={o.rotation} draggable
-        onClick={onSelect} onTap={onSelect} opacity={o.layer > 0 ? 0.88 : 1}
+        onClick={(e) => onSelect(e)} onTap={(e) => onSelect(e)} opacity={o.layer > 0 ? 0.88 : 1}
+        onDragStart={(e) => onDragStart(e.target)}
         onDragMove={(e) => onDragMove(e.target)}
-        onDragEnd={(e) => onDragEnd(e.target)}
-        onTransformEnd={() => onTransformEnd(ref.current)}>
+        onDragEnd={(e) => onDragEnd(e.target)}>
         <Rect width={wPx} height={dPx} fill={o.color}
-          stroke={collided ? '#dc2626' : isSel ? '#2563eb' : '#374151'}
-          strokeWidth={collided ? 3 : isSel ? 2 : 1} />
+          stroke={stroke} strokeWidth={collided || over ? 3 : isSel ? 2 : 1}
+          dash={over ? [6, 4] : undefined} />
         <Text width={wPx} height={dPx}
           text={`${o.name}\n${Math.round(o.w)}×${Math.round(o.d)}\n[L${o.layer}]`}
           fontSize={Math.max(9, Math.min(13, wPx / 12))} align="center" verticalAlign="middle" listening={false} />
@@ -31,7 +33,7 @@ function RectNode({ o, px, ox, oy, isSel, collided, onSelect, onDragEnd, onTrans
   )
 }
 
-function OpeningNode({ o, px, ox, oy, isSel, onSelect, onDragEnd, onDragMove }) {
+function OpeningNode({ o, px, ox, oy, isSel, onSelect, onDragStart, onDragEnd, onDragMove }) {
   const ref = useRef(); const trRef = useRef()
   useEffect(() => {
     if (isSel && trRef.current && ref.current) { trRef.current.nodes([ref.current]); trRef.current.getLayer().batchDraw() }
@@ -41,7 +43,8 @@ function OpeningNode({ o, px, ox, oy, isSel, onSelect, onDragEnd, onDragMove }) 
   return (
     <>
       <Group ref={ref} x={ox + o.x * px} y={oy + o.y * px} rotation={o.rotation} draggable
-        onClick={onSelect} onTap={onSelect}
+        onClick={(e) => onSelect(e)} onTap={(e) => onSelect(e)}
+        onDragStart={(e) => onDragStart(e.target)}
         onDragMove={(e) => onDragMove(e.target)}
         onDragEnd={(e) => onDragEnd(e.target)}>
         <Rect width={wPx} height={dPx} fill={FLOOR_COLOR}
@@ -69,10 +72,14 @@ function OpeningNode({ o, px, ox, oy, isSel, onSelect, onDragEnd, onDragMove }) 
 
 export default function CanvasStage() {
   const s = useStore()
-  const { objects, walls, selectedId, selectedWallId, area, gridMm, snap, edgeSnap: edgeOn, showCollision,
-          tool, draftWall, ortho, select, selectWall, commit, commitObject,
-          updateWallPoint, wallAddPoint, wallSetCursor } = s
+  const { objects, walls, selectedIds, selectedId, selectedWallId, area, gridMm, snap, edgeSnap: edgeOn,
+          showCollision, sceneKey, tool, draftWall, ortho,
+          select, toggleSelect, setSelection, selectWall, commit,
+          updateObject, updateWallPoint, wallAddPoint, wallSetCursor } = s
   const [guides, setGuides] = useState([])
+  const [rb, setRb] = useState(null) // 框选矩形(stage px)
+  const rbStart = useRef(null)
+  const dragRef = useRef(null)
   const shiftRef = useRef(false)
 
   const stageW = (window.innerWidth - 210 - 280) / 2
@@ -94,7 +101,15 @@ export default function CanvasStage() {
     return () => { window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku) }
   }, [])
 
-  const collisions = useMemo(() => (showCollision ? detectCollisions(objects) : new Set()), [objects, showCollision])
+  const baseYMap = useMemo(() => computeBaseY(objects), [objects])
+  const containerH = CONTAINER_H[sceneKey] || 2500
+  const overSet = useMemo(() => {
+    const set = new Set()
+    objects.forEach((o) => { if (!o.isOpening && (baseYMap[o.id] || 0) + (o.h || 0) > containerH + 1) set.add(o.id) })
+    return set
+  }, [objects, baseYMap, containerH])
+  const collisions = useMemo(() => (showCollision ? detectCollisions(objects, baseYMap) : new Set()), [objects, showCollision, baseYMap])
+
   const toMm = (pxX, pxY) => ({ x: (pxX - ox) / px, y: (pxY - oy) / px })
 
   const applyOrtho = (pt) => {
@@ -106,6 +121,7 @@ export default function CanvasStage() {
   }
   const snapPt = (pt) => ({ x: snapGrid(pt.x, gridMm, snap), y: snapGrid(pt.y, gridMm, snap) })
 
+  // ---- Stage 鼠标事件:画墙 / 框选 ----
   const handleStageMouseDown = (e) => {
     if (tool === 'wall') {
       const pos = e.target.getStage().getPointerPosition()
@@ -116,40 +132,85 @@ export default function CanvasStage() {
       }
       wallAddPoint([pt.x, pt.y]); return
     }
-    if (e.target === e.target.getStage()) select(null)
+    // 只有点到空白才开始框选
+    if (e.target === e.target.getStage()) {
+      const pos = e.target.getStage().getPointerPosition()
+      rbStart.current = { x: pos.x, y: pos.y }
+      setRb({ x: pos.x, y: pos.y, w: 0, h: 0 })
+    }
   }
   const handleStageMouseMove = (e) => {
-    if (tool !== 'wall' || !draftWall) return
-    const pos = e.target.getStage().getPointerPosition()
-    const pt = snapPt(applyOrtho(toMm(pos.x, pos.y)))
-    wallSetCursor([pt.x, pt.y])
+    const stage = e.target.getStage()
+    const pos = stage.getPointerPosition()
+    if (tool === 'wall' && draftWall) {
+      const pt = snapPt(applyOrtho(toMm(pos.x, pos.y)))
+      wallSetCursor([pt.x, pt.y]); return
+    }
+    if (rbStart.current) {
+      const x0 = rbStart.current.x, y0 = rbStart.current.y
+      setRb({ x: Math.min(x0, pos.x), y: Math.min(y0, pos.y), w: Math.abs(pos.x - x0), h: Math.abs(pos.y - y0) })
+    }
+  }
+  const handleStageMouseUp = () => {
+    if (tool === 'wall') return
+    if (rbStart.current && rb) {
+      if (rb.w < 5 && rb.h < 5) {
+        select(null) // 点击空白=取消选择
+      } else {
+        const r = { x1: (rb.x - ox) / px, y1: (rb.y - oy) / px, x2: (rb.x + rb.w - ox) / px, y2: (rb.y + rb.h - oy) / px }
+        const ids = objects.filter((o) => {
+          const f = footprint(o)
+          return !(f.x2 < r.x1 || f.x1 > r.x2 || f.y2 < r.y1 || f.y1 > r.y2)
+        }).map((o) => o.id)
+        setSelection(ids)
+      }
+    }
+    rbStart.current = null; setRb(null)
   }
   const handleDblClick = () => { if (tool === 'wall') s.wallFinish() }
 
-  const onObjDragMove = (o, node) => {
+  // ---- 对象选择(支持 Shift 加选) ----
+  const onSelectObj = (o, e) => {
+    if (e && e.evt && e.evt.shiftKey) toggleSelect(o.id)
+    else if (!selectedIds.includes(o.id)) select(o.id)
+  }
+
+  // ---- 整组拖动 ----
+  const onDragStart = (o, node) => {
+    let ids = selectedIds
+    if (!ids.includes(o.id)) { select(o.id); ids = [o.id] }
+    commit() // 记录拖动前
+    const starts = {}
+    useStore.getState().objects.forEach((ob) => { if (ids.includes(ob.id)) starts[ob.id] = { x: ob.x, y: ob.y } })
+    dragRef.current = { ids, starts, startNode: { x: o.x, y: o.y } }
+  }
+  const onDragMove = (o, node) => {
+    const dr = dragRef.current; if (!dr) return
     let mm = toMm(node.x(), node.y())
     mm = { x: snapGrid(mm.x, gridMm, snap), y: snapGrid(mm.y, gridMm, snap) }
-    if (edgeOn && !o.isOpening) {
+    if (edgeOn && !o.isOpening && dr.ids.length === 1) {
       const r = edgeSnap(o, objects, mm.x, mm.y, 80)
       mm = { x: r.x, y: r.y }; setGuides(r.guides)
     }
+    const dx = mm.x - dr.startNode.x, dy = mm.y - dr.startNode.y
+    dr.ids.forEach((id) => { if (id !== o.id) { const st = dr.starts[id]; updateObject(id, { x: st.x + dx, y: st.y + dy }) } })
+    updateObject(o.id, { x: mm.x, y: mm.y })
     node.x(ox + mm.x * px); node.y(oy + mm.y * px)
   }
-  const onObjDragEnd = (o, node) => {
-    let mm = toMm(node.x(), node.y())
-    if (o.isOpening) {
-      const snapped = snapToWall({ ...o, x: mm.x, y: mm.y }, walls, 600)
-      if (snapped) mm = snapped
-      commitObject(o.id, { x: mm.x, y: mm.y, rotation: snapped ? snapped.rotation : o.rotation })
-    } else {
-      commitObject(o.id, { x: mm.x, y: mm.y })
+  const onDragEnd = (o, node) => {
+    const dr = dragRef.current
+    if (o.isOpening && dr && dr.ids.length === 1) {
+      const mm = toMm(node.x(), node.y())
+      const r = projectOpeningToWall({ ...o, x: mm.x, y: mm.y }, walls, 600)
+      if (r) updateObject(o.id, { x: r.x, y: r.y, rotation: r.rotation, wallRef: r.wallRef })
+      else updateObject(o.id, { wallRef: null })
     }
-    setGuides([])
+    dragRef.current = null; setGuides([])
   }
-  const onObjTransformEnd = (o, node) => {
+  const onTransformEnd = (o, node) => {
     const sx = node.scaleX(), sy = node.scaleY()
     node.scaleX(1); node.scaleY(1)
-    commitObject(o.id, {
+    s.commitObject(o.id, {
       x: (node.x() - ox) / px, y: (node.y() - oy) / px,
       w: Math.max(20, o.w * sx), d: Math.max(20, o.d * sy),
       rotation: Math.round(node.rotation())
@@ -172,13 +233,12 @@ export default function CanvasStage() {
   return (
     <div style={{ width: stageW, background: '#e8eaed', overflow: 'hidden', cursor: tool === 'wall' ? 'crosshair' : 'default' }}>
       <Stage width={stageW} height={stageH}
-        onMouseDown={handleStageMouseDown} onMouseMove={handleStageMouseMove} onDblClick={handleDblClick}>
+        onMouseDown={handleStageMouseDown} onMouseMove={handleStageMouseMove} onMouseUp={handleStageMouseUp} onDblClick={handleDblClick}>
         <Layer listening={false}>
           <Rect x={ox} y={oy} width={area.w * px} height={area.d * px} fill={FLOOR_COLOR} stroke="#1f2937" strokeWidth={2} />
           {gridLines}
         </Layer>
 
-        {/* 墙层:可点选 */}
         <Layer>
           {walls.map((w) => {
             const isSel = w.id === selectedWallId
@@ -199,7 +259,6 @@ export default function CanvasStage() {
               ))}
             </>
           )}
-          {/* 选中墙的端点:可拖动编辑 */}
           {selWall && tool !== 'wall' && selWall.points.map(([x, y], i) => (
             <Circle key={'ep' + i} x={ox + x * px} y={oy + y * px} radius={6}
               fill="#ffffff" stroke="#2563eb" strokeWidth={2} draggable
@@ -214,20 +273,21 @@ export default function CanvasStage() {
           ))}
         </Layer>
 
-        {/* 对象层 */}
         <Layer>
           {ordered.map((o) => o.isOpening ? (
-            <OpeningNode key={o.id} o={o} px={px} ox={ox} oy={oy} isSel={o.id === selectedId}
-              onSelect={() => select(o.id)}
-              onDragMove={(node) => onObjDragMove(o, node)}
-              onDragEnd={(node) => onObjDragEnd(o, node)} />
+            <OpeningNode key={o.id} o={o} px={px} ox={ox} oy={oy} isSel={selectedIds.includes(o.id)}
+              onSelect={(e) => onSelectObj(o, e)}
+              onDragStart={(node) => onDragStart(o, node)}
+              onDragMove={(node) => onDragMove(o, node)}
+              onDragEnd={(node) => onDragEnd(o, node)} />
           ) : (
             <RectNode key={o.id} o={o} px={px} ox={ox} oy={oy}
-              isSel={o.id === selectedId} collided={collisions.has(o.id)}
-              onSelect={() => select(o.id)}
-              onDragMove={(node) => onObjDragMove(o, node)}
-              onDragEnd={(node) => onObjDragEnd(o, node)}
-              onTransformEnd={(node) => onObjTransformEnd(o, node)} />
+              isSel={selectedIds.includes(o.id)} collided={collisions.has(o.id)} over={overSet.has(o.id)}
+              onSelect={(e) => onSelectObj(o, e)}
+              onDragStart={(node) => onDragStart(o, node)}
+              onDragMove={(node) => onDragMove(o, node)}
+              onDragEnd={(node) => onDragEnd(o, node)}
+              onTransformEnd={(node) => onTransformEnd(o, node)} />
           ))}
         </Layer>
 
@@ -235,6 +295,9 @@ export default function CanvasStage() {
           {guides.map((g, i) => g.vertical
             ? <Line key={i} points={[ox + g.pos * px, oy + g.a * px, ox + g.pos * px, oy + g.b * px]} stroke="#ef4444" strokeWidth={1} dash={[4, 3]} />
             : <Line key={i} points={[ox + g.a * px, oy + g.pos * px, ox + g.b * px, oy + g.pos * px]} stroke="#ef4444" strokeWidth={1} dash={[4, 3]} />
+          )}
+          {rb && rb.w > 2 && rb.h > 2 && (
+            <Rect x={rb.x} y={rb.y} width={rb.w} height={rb.h} fill="rgba(37,99,235,0.12)" stroke="#2563eb" strokeWidth={1} dash={[4, 3]} />
           )}
         </Layer>
       </Stage>

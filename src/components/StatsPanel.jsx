@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react'
 import { useStore } from '../store.js'
 import { detectCollisions } from '../utils/collision.js'
+import { computeBaseY } from '../utils/layout.js'
 
 export default function StatsPanel() {
   const { objects, walls, area } = useStore()
@@ -21,10 +22,10 @@ export default function StatsPanel() {
         wallLen += Math.hypot(bx - ax, by - ay)
       }
     })
+    const collisions = detectCollisions(objects, computeBaseY(objects)).size
     return {
       areaM2, count: objects.length, walls: walls.length, wallLenM: wallLen / 1000,
-      usedL0, usedL1, ratio: areaM2 ? (usedL0 / areaM2) * 100 : 0,
-      collisions: detectCollisions(objects).size
+      usedL0, usedL1, ratio: areaM2 ? (usedL0 / areaM2) * 100 : 0, collisions
     }
   }, [objects, walls, area])
 
@@ -46,7 +47,7 @@ export default function StatsPanel() {
       {line('L1 台面占用', `${stats.usedL1.toFixed(2)} m²`)}
       {line('地面利用率', `${stats.ratio.toFixed(1)}%`)}
       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, padding: '4px 0', marginTop: 4, borderTop: '1px dashed #eee' }}>
-        <span style={{ color: '#6b7280' }}>碰撞</span>
+        <span style={{ color: '#6b7280' }}>碰撞(3D)</span>
         <b style={{ color: stats.collisions > 0 ? '#dc2626' : '#16a34a' }}>
           {stats.collisions > 0 ? `🔴 ${stats.collisions} 处` : '🟢 无'}
         </b>

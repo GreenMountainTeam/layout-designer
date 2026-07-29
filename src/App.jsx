@@ -19,29 +19,32 @@ export default function App() {
       if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) { s.undo(); e.preventDefault(); return }
       if (e.ctrlKey && (e.key === 'y' || e.key === 'Y')) { s.redo(); e.preventDefault(); return }
 
-      // 墙选中时的操作
+      // 墙选中
       if (s.selectedWallId) {
         if (e.key === 'Delete' || e.key === 'Backspace') { s.removeSelectedWall(); e.preventDefault(); return }
         if (e.key === 'Escape') { s.selectWall(null); return }
       }
 
-      const o = s.objects.find((x) => x.id === s.selectedId)
-      if (e.key === 'Delete' || e.key === 'Backspace') { s.removeSelected(); e.preventDefault() }
+      // 对象(单/多)
+      const has = s.selectedIds.length > 0
+      if (e.key === 'Delete' || e.key === 'Backspace') { if (has) { s.removeSelected(); e.preventDefault() } }
       else if (e.key === 'r' || e.key === 'R') { s.rotateSelected() }
-      else if (e.ctrlKey && (e.key === 'd' || e.key === 'D')) { s.duplicateSelected(); e.preventDefault() }
-      else if (o && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+      else if (e.ctrlKey && (e.key === 'd' || e.key === 'D')) { if (has) { s.duplicateSelected(); e.preventDefault() } }
+      else if (e.key === 'Escape') { s.clearSelection() }
+      else if (has && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
         const step = e.shiftKey ? 100 : 10
-        const patch = {}
-        if (e.key === 'ArrowLeft') patch.x = o.x - step
-        if (e.key === 'ArrowRight') patch.x = o.x + step
-        if (e.key === 'ArrowUp') patch.y = o.y - step
-        if (e.key === 'ArrowDown') patch.y = o.y + step
-        s.commitObject(o.id, patch); e.preventDefault()
+        let dx = 0, dy = 0
+        if (e.key === 'ArrowLeft') dx = -step
+        if (e.key === 'ArrowRight') dx = step
+        if (e.key === 'ArrowUp') dy = -step
+        if (e.key === 'ArrowDown') dy = step
+        s.moveSelectedBy(dx, dy, true)
+        e.preventDefault()
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [s.tool, s.selectedId, s.selectedWallId, s.objects])
+  }, [s.tool, s.selectedIds, s.selectedWallId])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -58,8 +61,8 @@ export default function App() {
       </div>
       <div style={footer}>
         {s.tool === 'wall'
-          ? '✏️ 画墙:点击落点,连续点下一点;Shift正交;双击或ESC完成'
-          : '选择工具下:点击墙可选中并拖动蓝色端点编辑 · Del删除 · 3D里可直接拖动物体 · 📷可截图'}
+          ? '✏️ 画墙:点击落点,连续点;Shift正交;双击或ESC完成'
+          : '空白拖动=框选 · Shift点击=加选 · 拖动=整组移动 · Del删除 · Ctrl+D复制 · 3D单选可拖动手柄 · 📷截图'}
       </div>
     </div>
   )
