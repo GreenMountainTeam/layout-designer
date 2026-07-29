@@ -2,10 +2,10 @@ import React, { useEffect } from 'react'
 import Toolbar from './components/Toolbar.jsx'
 import ComponentLibrary from './components/ComponentLibrary.jsx'
 import CanvasStage from './components/CanvasStage.jsx'
+import ThreeScene from './components/3d/ThreeScene.jsx'
 import PropertyPanel from './components/PropertyPanel.jsx'
 import StatsPanel from './components/StatsPanel.jsx'
 import { useStore } from './store.js'
-import ThreeScene from "./components/3d/ThreeScene.jsx";
 
 export default function App() {
   const s = useStore()
@@ -18,6 +18,13 @@ export default function App() {
       }
       if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) { s.undo(); e.preventDefault(); return }
       if (e.ctrlKey && (e.key === 'y' || e.key === 'Y')) { s.redo(); e.preventDefault(); return }
+
+      // 墙选中时的操作
+      if (s.selectedWallId) {
+        if (e.key === 'Delete' || e.key === 'Backspace') { s.removeSelectedWall(); e.preventDefault(); return }
+        if (e.key === 'Escape') { s.selectWall(null); return }
+      }
+
       const o = s.objects.find((x) => x.id === s.selectedId)
       if (e.key === 'Delete' || e.key === 'Backspace') { s.removeSelected(); e.preventDefault() }
       else if (e.key === 'r' || e.key === 'R') { s.rotateSelected() }
@@ -34,7 +41,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [s.tool, s.selectedId, s.objects])
+  }, [s.tool, s.selectedId, s.selectedWallId, s.objects])
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
@@ -51,8 +58,8 @@ export default function App() {
       </div>
       <div style={footer}>
         {s.tool === 'wall'
-          ? '✏️ 画墙:点击落点,连续点下一点;按住Shift正交;双击或ESC完成'
-          : 'R=旋转 · Del=删除 · Ctrl+D=复制 · Ctrl+Z/Y=撤销/重做 · 方向键=移动10mm(Shift=100mm) · 门窗拖到墙上自动吸附'}
+          ? '✏️ 画墙:点击落点,连续点下一点;Shift正交;双击或ESC完成'
+          : '选择工具下:点击墙可选中并拖动蓝色端点编辑 · Del删除 · 3D里可直接拖动物体 · 📷可截图'}
       </div>
     </div>
   )

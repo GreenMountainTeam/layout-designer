@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import { SCENES } from './catalog.js'
 
-// 全局状态中枢 v3.0。坐标单位 mm,渲染时乘 pxPerMm。
 let _id = 1
 const nextId = (p = 'obj') => p + '-' + _id++
 const snapshot = (s) => JSON.stringify({ objects: s.objects, walls: s.walls })
@@ -21,6 +20,7 @@ export const useStore = create((set, get) => ({
   objects: [],
   walls: [],
   selectedId: null,
+  selectedWallId: null,
   _past: [],
   _future: [],
 
@@ -32,12 +32,12 @@ export const useStore = create((set, get) => ({
   undo: () => {
     const s = get(); if (!s._past.length) return
     const prev = s._past.pop(); s._future.push(snapshot(s))
-    set({ ...applySnap(prev), _past: s._past, _future: s._future, selectedId: null })
+    set({ ...applySnap(prev), _past: s._past, _future: s._future, selectedId: null, selectedWallId: null })
   },
   redo: () => {
     const s = get(); if (!s._future.length) return
     const nxt = s._future.pop(); s._past.push(snapshot(s))
-    set({ ...applySnap(nxt), _past: s._past, _future: s._future, selectedId: null })
+    set({ ...applySnap(nxt), _past: s._past, _future: s._future, selectedId: null, selectedWallId: null })
   },
 
   setScene: (key) => { const s = SCENES[key]; if (s) set({ sceneKey: key, area: { w: s.w, d: s.d } }) },
@@ -49,7 +49,7 @@ export const useStore = create((set, get) => ({
   toggleCollision: () => set((s) => ({ showCollision: !s.showCollision })),
   toggleOrtho: () => set((s) => ({ ortho: !s.ortho })),
 
-  setTool: (t) => set({ tool: t, draftWall: null, selectedId: null }),
+  setTool: (t) => set({ tool: t, draftWall: null, selectedId: null, selectedWallId: null }),
 
   wallAddPoint: (pt) => set((s) => {
     if (!s.draftWall) return { draftWall: { points: [pt], cursor: pt } }
@@ -64,7 +64,23 @@ export const useStore = create((set, get) => ({
     } else { set({ draftWall: null }) }
   },
   wallCancel: () => set({ draftWall: null }),
-  removeWall: (id) => { get().commit(); set((s) => ({ walls: s.walls.filter((w) => w.id !== id) })) },
+
+  // ---- 墙选中 / 编辑 / 删除 ----
+  selectWall: (id) => set({ selectedWallId: id, selectedId: null }),
+  updateWall: (id, patch) => set((s) => ({ walls: s.walls.map((w) => (w.id === id ? { ...w, ...patch } : w)) })),
+  commitWall: (id, patch) => { get().commit(); get().updateWall(id, patch) },
+  updateWallPoint: (id, index, x, y) => set((s) => ({
+    walls: s.walls.map((w) => {
+      if (w.id !== id) return w
+      const pts = w.points.map((p, i) => (i === index ? [x, y] : p))
+      return { ...w, points: pts }
+    })
+  })),
+  removeSelectedWall: () => {
+    const s = get(); if (!s.selectedWallId) return
+    get().commit()
+    set({ walls: s.walls.filter((w) => w.id !== s.selectedWallId), selectedWallId: null })
+  },
 
   addFromCatalog: (item) => {
     get().commit()
@@ -85,7 +101,7 @@ export const useStore = create((set, get) => ({
   updateObject: (id, patch) => set((s) => ({ objects: s.objects.map((o) => (o.id === id ? { ...o, ...patch } : o)) })),
   commitObject: (id, patch) => { get().commit(); get().updateObject(id, patch) },
 
-  select: (id) => set({ selectedId: id }),
+  select: (id) => set({ selectedId: id, selectedWallId: null }),
 
   removeSelected: () => {
     const s = get(); if (!s.selectedId) return
@@ -102,11 +118,11 @@ export const useStore = create((set, get) => ({
     const s = get(); const o = s.objects.find((x) => x.id === s.selectedId); if (!o) return
     get().commit(); get().updateObject(o.id, { rotation: (o.rotation + 90) % 360 })
   },
-  clearAll: () => { get().commit(); set({ objects: [], walls: [], selectedId: null, draftWall: null }) },
+  clearAll: () => { get().commit(); set({ objects: [], walls: [], selectedId: null, selectedWallId: null, draftWall: null }) },
 
   exportJSON: () => {
     const s = get()
-    return JSON.stringify({ version: '3.0', area: s.area, sceneKey: s.sceneKey, gridMm: s.gridMm, objects: s.objects, walls: s.walls }, null, 2)
+    return JSON.stringify({ version: '4.2', area: s.area, sceneKey: s.sceneKey, gridMm: s.gridMm, objects: s.objects, walls: s.walls }, null, 2)
   },
   importJSON: (text) => {
     try {
@@ -115,7 +131,7 @@ export const useStore = create((set, get) => ({
         area: d.area || get().area, sceneKey: d.sceneKey || 'custom', gridMm: d.gridMm ?? 100,
         objects: (d.objects || []).map((o) => ({ ...o, id: o.id || nextId() })),
         walls: (d.walls || []).map((w) => ({ ...w, id: w.id || nextId('wall') })),
-        selectedId: null, draftWall: null
+        selectedId: null, selectedWallId: null, draftWall: null
       })
       return true
     } catch (e) { alert('JSON 解析失败: ' + e.message); return false }

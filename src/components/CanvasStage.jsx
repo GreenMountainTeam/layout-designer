@@ -69,8 +69,9 @@ function OpeningNode({ o, px, ox, oy, isSel, onSelect, onDragEnd, onDragMove }) 
 
 export default function CanvasStage() {
   const s = useStore()
-  const { objects, walls, selectedId, area, gridMm, snap, edgeSnap: edgeOn, showCollision,
-          tool, draftWall, ortho, select, commitObject, wallAddPoint, wallSetCursor } = s
+  const { objects, walls, selectedId, selectedWallId, area, gridMm, snap, edgeSnap: edgeOn, showCollision,
+          tool, draftWall, ortho, select, selectWall, commit, commitObject,
+          updateWallPoint, wallAddPoint, wallSetCursor } = s
   const [guides, setGuides] = useState([])
   const shiftRef = useRef(false)
 
@@ -166,21 +167,30 @@ export default function CanvasStage() {
   const wallPts = (w) => w.points.flatMap(([x, y]) => [ox + x * px, oy + y * px])
   const draftPts = draftWall ? [...draftWall.points, draftWall.cursor].flatMap(([x, y]) => [ox + x * px, oy + y * px]) : null
   const ordered = [...objects].sort((a, b) => (a.layer || 0) - (b.layer || 0))
+  const selWall = walls.find((w) => w.id === selectedWallId)
 
   return (
-    <div style={{ flex: 1, background: '#e8eaed', overflow: 'hidden', cursor: tool === 'wall' ? 'crosshair' : 'default' }}>
+    <div style={{ width: stageW, background: '#e8eaed', overflow: 'hidden', cursor: tool === 'wall' ? 'crosshair' : 'default' }}>
       <Stage width={stageW} height={stageH}
         onMouseDown={handleStageMouseDown} onMouseMove={handleStageMouseMove} onDblClick={handleDblClick}>
         <Layer listening={false}>
           <Rect x={ox} y={oy} width={area.w * px} height={area.d * px} fill={FLOOR_COLOR} stroke="#1f2937" strokeWidth={2} />
           {gridLines}
         </Layer>
+
+        {/* 墙层:可点选 */}
         <Layer>
-          {walls.map((w) => (
-            <Line key={w.id} points={wallPts(w)} stroke="#6b7280"
-              strokeWidth={Math.max(2, w.thickness * px)} lineJoin="round" lineCap="round"
-              onClick={() => select(null)} />
-          ))}
+          {walls.map((w) => {
+            const isSel = w.id === selectedWallId
+            return (
+              <Line key={w.id} points={wallPts(w)}
+                stroke={isSel ? '#2563eb' : '#6b7280'}
+                strokeWidth={Math.max(2, w.thickness * px)} lineJoin="round" lineCap="round"
+                hitStrokeWidth={Math.max(12, w.thickness * px)}
+                onClick={(e) => { e.cancelBubble = true; if (tool !== 'wall') selectWall(w.id) }}
+                onTap={(e) => { e.cancelBubble = true; if (tool !== 'wall') selectWall(w.id) }} />
+            )
+          })}
           {draftPts && (
             <>
               <Line points={draftPts} stroke="#dc2626" strokeWidth={Math.max(2, 100 * px)} dash={[8, 5]} lineJoin="round" lineCap="round" listening={false} />
@@ -189,7 +199,22 @@ export default function CanvasStage() {
               ))}
             </>
           )}
+          {/* 选中墙的端点:可拖动编辑 */}
+          {selWall && tool !== 'wall' && selWall.points.map(([x, y], i) => (
+            <Circle key={'ep' + i} x={ox + x * px} y={oy + y * px} radius={6}
+              fill="#ffffff" stroke="#2563eb" strokeWidth={2} draggable
+              onDragStart={() => commit()}
+              onDragMove={(e) => {
+                let nx = (e.target.x() - ox) / px
+                let ny = (e.target.y() - oy) / px
+                nx = snapGrid(nx, gridMm, snap); ny = snapGrid(ny, gridMm, snap)
+                e.target.x(ox + nx * px); e.target.y(oy + ny * px)
+                updateWallPoint(selWall.id, i, nx, ny)
+              }} />
+          ))}
         </Layer>
+
+        {/* 对象层 */}
         <Layer>
           {ordered.map((o) => o.isOpening ? (
             <OpeningNode key={o.id} o={o} px={px} ox={ox} oy={oy} isSel={o.id === selectedId}
@@ -205,6 +230,7 @@ export default function CanvasStage() {
               onTransformEnd={(node) => onObjTransformEnd(o, node)} />
           ))}
         </Layer>
+
         <Layer listening={false}>
           {guides.map((g, i) => g.vertical
             ? <Line key={i} points={[ox + g.pos * px, oy + g.a * px, ox + g.pos * px, oy + g.b * px]} stroke="#ef4444" strokeWidth={1} dash={[4, 3]} />
