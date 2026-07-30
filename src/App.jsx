@@ -13,19 +13,21 @@ export default function App() {
   useEffect(() => {
     const onKey = (e) => {
       if (['INPUT', 'SELECT', 'TEXTAREA'].includes(e.target.tagName)) return
+
       if (s.tool === 'wall') {
         if (e.key === 'Escape' || e.key === 'Enter') { s.wallFinish(); s.setTool('select'); e.preventDefault(); return }
       }
+      // 测量/标注模式:ESC 回选择
+      if ((s.tool === 'measure' || s.tool === 'annotate') && e.key === 'Escape') { s.setTool('select'); return }
+
       if (e.ctrlKey && (e.key === 'z' || e.key === 'Z')) { s.undo(); e.preventDefault(); return }
       if (e.ctrlKey && (e.key === 'y' || e.key === 'Y')) { s.redo(); e.preventDefault(); return }
 
-      // 墙选中
       if (s.selectedWallId) {
         if (e.key === 'Delete' || e.key === 'Backspace') { s.removeSelectedWall(); e.preventDefault(); return }
         if (e.key === 'Escape') { s.selectWall(null); return }
       }
 
-      // 对象(单/多)
       const has = s.selectedIds.length > 0
       if (e.key === 'Delete' || e.key === 'Backspace') { if (has) { s.removeSelected(); e.preventDefault() } }
       else if (e.key === 'r' || e.key === 'R') { s.rotateSelected() }
@@ -60,9 +62,10 @@ export default function App() {
         </div>
       </div>
       <div style={footer}>
-        {s.tool === 'wall'
-          ? '✏️ 画墙:点击落点,连续点;Shift正交;双击或ESC完成'
-          : '空白拖动=框选 · Shift点击=加选 · 拖动=整组移动 · Del删除 · Ctrl+D复制 · 3D单选可拖动手柄 · 📷截图'}
+        {s.tool === 'wall' ? '✏️ 画墙:点击落点;Shift正交;双击/ESC完成'
+          : s.tool === 'measure' ? '📏 测量:点两点显示距离;ESC退出'
+          : s.tool === 'annotate' ? '🏷️ 标注:点击画布添加文字;点标注可删;ESC退出'
+          : '空白拖动=框选 · Shift点击=加选 · 整组移动/删除/复制 · 选中对象可用阵列填充 · 📄导出清单'}
       </div>
     </div>
   )

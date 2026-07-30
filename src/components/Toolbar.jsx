@@ -1,15 +1,19 @@
 import React, { useRef } from 'react'
 import { useStore } from '../store.js'
 import { SCENES } from '../catalog.js'
+import { buildLayoutCsv, downloadCsv } from '../utils/exportCsv.js'
 
 export default function Toolbar() {
   const s = useStore()
   const fileRef = useRef()
 
-  const doExport = () => {
+  const doExportJSON = () => {
     const blob = new Blob([s.exportJSON()], { type: 'application/json' })
     const a = document.createElement('a')
     a.href = URL.createObjectURL(blob); a.download = `layout_${Date.now()}.json`; a.click()
+  }
+  const doExportCSV = () => {
+    downloadCsv(buildLayoutCsv(s.objects, s.area, s.sceneKey), `layout_${Date.now()}.csv`)
   }
   const doImport = (e) => {
     const f = e.target.files[0]; if (!f) return
@@ -21,14 +25,16 @@ export default function Toolbar() {
 
   return (
     <div style={bar}>
-      <strong style={{ fontSize: 14 }}>📐 Layout Designer</strong><span style={ver}>v3.0</span>
+      <strong style={{ fontSize: 14 }}>📐 Layout Designer</strong><span style={ver}>v4.6</span>
       <div style={sep} />
       {toolBtn('select', '🖱️ 选择')}
       {toolBtn('wall', '✏️ 画墙')}
+      {toolBtn('measure', '📏 测量')}
+      {toolBtn('annotate', '🏷️ 标注')}
       {s.tool === 'wall' && (
         <>
-          <label style={chk}><input type="checkbox" checked={s.ortho} onChange={s.toggleOrtho} /> 正交(Shift)</label>
-          <button style={btn} onClick={s.wallFinish}>✓ 完成(ESC)</button>
+          <label style={chk}><input type="checkbox" checked={s.ortho} onChange={s.toggleOrtho} /> 正交</label>
+          <button style={btn} onClick={s.wallFinish}>✓ 完成</button>
         </>
       )}
       <div style={sep} />
@@ -45,18 +51,16 @@ export default function Toolbar() {
         <option value={0}>关闭</option><option value={50}>50</option><option value={100}>100</option>
         <option value={500}>500</option><option value={1000}>1000</option>
       </select>
-      <label style={chk}><input type="checkbox" checked={s.snap} onChange={s.toggleSnap} /> 网格吸附</label>
+      <label style={chk}><input type="checkbox" checked={s.snap} onChange={s.toggleSnap} /> 吸附</label>
       <label style={chk}><input type="checkbox" checked={s.edgeSnap} onChange={s.toggleEdgeSnap} /> 贴紧</label>
       <label style={chk}><input type="checkbox" checked={s.showCollision} onChange={s.toggleCollision} /> 碰撞</label>
       <div style={sep} />
       <button style={btn} onClick={s.undo} title="撤销 Ctrl+Z">↶</button>
       <button style={btn} onClick={s.redo} title="重做 Ctrl+Y">↷</button>
-      <button style={btn} onClick={s.rotateSelected} disabled={!s.selectedId}>↻90°</button>
-      <button style={btn} onClick={s.duplicateSelected} disabled={!s.selectedId}>📋</button>
-      <button style={btn} onClick={s.removeSelected} disabled={!s.selectedId}>🗑️</button>
       <button style={btn} onClick={() => { if (confirm('清空全部?')) s.clearAll() }}>清空</button>
       <div style={{ ...sep, marginLeft: 'auto' }} />
-      <button style={btn} onClick={doExport}>💾 保存</button>
+      <button style={btn} onClick={doExportCSV}>📄 清单CSV</button>
+      <button style={btn} onClick={doExportJSON}>💾 保存</button>
       <button style={btn} onClick={() => fileRef.current.click()}>📂 加载</button>
       <input ref={fileRef} type="file" accept=".json" style={{ display: 'none' }} onChange={doImport} />
     </div>

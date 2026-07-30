@@ -4,6 +4,10 @@ import { OrbitControls, Grid, TransformControls } from "@react-three/drei";
 import * as THREE from "three";
 import { useStore } from "../../store.js";
 import { computeBaseY, analyze, realCenter, CONTAINER_H } from "../../utils/layout.js";
+import {
+  hasRichModel,
+  ComponentModel
+} from "./ComponentModels.jsx";
 
 const FURN = new Set(["desk", "chair", "sofa", "cabinet", "bed", "rtable"]);
 
@@ -142,6 +146,13 @@ function furnitureParts(o, hi) {
 }
 
 function boxParts(o, hi, over) {
+  if (hasRichModel(o.type)) {
+    return [
+      <group key="rich">
+        <ComponentModel o={o} hi={hi} />
+      </group>
+    ];
+  }
   const hMeter = Math.max(0.05, (o.h || 100) / 1000);
   const trans = (o.layer || 0) > 0;
   const color = hi ? "#ff44aa" : over ? "#dc2626" : o.color || "#cccccc";

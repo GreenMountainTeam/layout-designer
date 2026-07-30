@@ -1,0 +1,731 @@
+{
+  "version": "4.6",
+  "area": {
+    "w": 10000,
+    "d": 20000
+  },
+  "sceneKey": "container_40hq",
+  "gridMm": 100,
+  "objects": [
+    {
+      "id": "obj-2",
+      "type": "door",
+      "name": "门",
+      "x": 100,
+      "y": 4100,
+      "w": 900,
+      "d": 120,
+      "h": 2100,
+      "rotation": 0,
+      "color": "#fbbf24",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": null
+    },
+    {
+      "id": "obj-17",
+      "type": "double_door",
+      "name": "双开门",
+      "x": 2400,
+      "y": 2240,
+      "w": 1600,
+      "d": 120,
+      "h": 2100,
+      "rotation": 0,
+      "color": "#f59e0b",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-15",
+        "index": 0,
+        "t": 0.47761194029850745
+      }
+    },
+    {
+      "id": "obj-18",
+      "type": "door",
+      "name": "门",
+      "x": 6740,
+      "y": 4100,
+      "w": 900,
+      "d": 120,
+      "h": 2100,
+      "rotation": 270,
+      "color": "#fbbf24",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-14",
+        "index": 1,
+        "t": 0.13414634146341464
+      }
+    },
+    {
+      "id": "obj-19",
+      "type": "door",
+      "name": "门",
+      "x": 7880,
+      "y": 5280,
+      "w": 900,
+      "d": 120,
+      "h": 2100,
+      "rotation": 0,
+      "color": "#fbbf24",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-13",
+        "index": 1,
+        "t": 0.5166666666666667
+      }
+    },
+    {
+      "id": "obj-21",
+      "type": "door",
+      "name": "门",
+      "x": 3260,
+      "y": 7400,
+      "w": 900,
+      "d": 120,
+      "h": 2100,
+      "rotation": 90,
+      "color": "#fbbf24",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-12",
+        "index": 1,
+        "t": 0.11206896551724138
+      }
+    },
+    {
+      "id": "obj-22",
+      "type": "desk",
+      "name": "桌子",
+      "x": 5000,
+      "y": 4580,
+      "w": 1400,
+      "d": 700,
+      "h": 750,
+      "rotation": 0,
+      "color": "#86efac",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-23",
+      "type": "cabinet",
+      "name": "柜子",
+      "x": 5600,
+      "y": 2300,
+      "w": 1000,
+      "d": 500,
+      "h": 1800,
+      "rotation": 0,
+      "color": "#f9a8d4",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-24",
+      "type": "cabinet",
+      "name": "柜子",
+      "x": 200,
+      "y": 2400,
+      "w": 1000,
+      "d": 500,
+      "h": 1800,
+      "rotation": 0,
+      "color": "#f9a8d4",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-25",
+      "type": "chair",
+      "name": "椅子",
+      "x": 5100,
+      "y": 2700,
+      "w": 500,
+      "d": 500,
+      "h": 900,
+      "rotation": 0,
+      "color": "#bef264",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-26",
+      "type": "chair",
+      "name": "椅子",
+      "x": 6030,
+      "y": 3100,
+      "w": 500,
+      "d": 500,
+      "h": 900,
+      "rotation": 0,
+      "color": "#bef264",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-27",
+      "type": "chair",
+      "name": "椅子",
+      "x": 6030,
+      "y": 3900,
+      "w": 500,
+      "d": 500,
+      "h": 900,
+      "rotation": 0,
+      "color": "#bef264",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-28",
+      "type": "chair",
+      "name": "椅子",
+      "x": 4330,
+      "y": 3000,
+      "w": 500,
+      "d": 500,
+      "h": 900,
+      "rotation": 0,
+      "color": "#bef264",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-29",
+      "type": "chair",
+      "name": "椅子",
+      "x": 4330,
+      "y": 3510,
+      "w": 500,
+      "d": 500,
+      "h": 900,
+      "rotation": 0,
+      "color": "#bef264",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-30",
+      "type": "chair",
+      "name": "椅子",
+      "x": 4330,
+      "y": 4080,
+      "w": 500,
+      "d": 500,
+      "h": 900,
+      "rotation": 0,
+      "color": "#bef264",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-31",
+      "type": "cabinet",
+      "name": "柜子",
+      "x": 1670,
+      "y": 5100,
+      "w": 1000,
+      "d": 500,
+      "h": 1800,
+      "rotation": 0,
+      "color": "#f9a8d4",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-33",
+      "type": "door",
+      "name": "门",
+      "x": 1370.0000000000005,
+      "y": 7130,
+      "w": 900,
+      "d": 120,
+      "h": 2100,
+      "rotation": 0,
+      "color": "#fbbf24",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-12",
+        "index": 0,
+        "t": 0.4500000000000002
+      }
+    },
+    {
+      "id": "obj-35",
+      "type": "door",
+      "name": "门",
+      "x": 8460,
+      "y": 5710,
+      "w": 900,
+      "d": 120,
+      "h": 2100,
+      "rotation": 90,
+      "color": "#fbbf24",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-34",
+        "index": 0,
+        "t": 0.475
+      }
+    },
+    {
+      "id": "obj-37",
+      "type": "cabinet",
+      "name": "柜子",
+      "x": 8400,
+      "y": 7100,
+      "w": 1000,
+      "d": 500,
+      "h": 1800,
+      "rotation": 0,
+      "color": "#f9a8d4",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-38",
+      "type": "bay_window",
+      "name": "飘窗",
+      "x": 7400,
+      "y": 12490,
+      "w": 1800,
+      "d": 300,
+      "h": 1500,
+      "rotation": 270,
+      "color": "#38bdf8",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": null
+    },
+    {
+      "id": "obj-39",
+      "type": "bay_window",
+      "name": "飘窗",
+      "x": 2500,
+      "y": 13050,
+      "w": 1800,
+      "d": 300,
+      "h": 1500,
+      "rotation": 180,
+      "color": "#38bdf8",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-9",
+        "index": 2,
+        "t": 0.84
+      }
+    },
+    {
+      "id": "obj-40",
+      "type": "bay_window",
+      "name": "飘窗",
+      "x": 7900,
+      "y": -50,
+      "w": 1800,
+      "d": 300,
+      "h": 1500,
+      "rotation": 0,
+      "color": "#38bdf8",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-9",
+        "index": 0,
+        "t": 0.88
+      }
+    },
+    {
+      "id": "obj-42",
+      "type": "window",
+      "name": "窗",
+      "x": 5499.999999999999,
+      "y": 12960,
+      "w": 1200,
+      "d": 120,
+      "h": 1500,
+      "rotation": 180,
+      "color": "#7dd3fc",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-9",
+        "index": 2,
+        "t": 0.5100000000000001
+      }
+    },
+    {
+      "id": "obj-43",
+      "type": "window",
+      "name": "窗",
+      "x": 700,
+      "y": 40,
+      "w": 1200,
+      "d": 120,
+      "h": 1500,
+      "rotation": 0,
+      "color": "#7dd3fc",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-9",
+        "index": 0,
+        "t": 0.13
+      }
+    },
+    {
+      "id": "obj-44",
+      "type": "window",
+      "name": "窗",
+      "x": 3999.999999999999,
+      "y": 40,
+      "w": 1200,
+      "d": 120,
+      "h": 1500,
+      "rotation": 0,
+      "color": "#7dd3fc",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-9",
+        "index": 0,
+        "t": 0.4599999999999999
+      }
+    },
+    {
+      "id": "obj-45",
+      "type": "sofa",
+      "name": "沙发",
+      "x": 3200,
+      "y": 11500,
+      "w": 1800,
+      "d": 800,
+      "h": 850,
+      "rotation": 0,
+      "color": "#a7f3d0",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-46",
+      "type": "sofa",
+      "name": "沙发",
+      "x": 3200,
+      "y": 11400,
+      "w": 1800,
+      "d": 800,
+      "h": 850,
+      "rotation": 0,
+      "color": "#a7f3d0",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-47",
+      "type": "bed",
+      "name": "床",
+      "x": 8200,
+      "y": 2250,
+      "w": 1800,
+      "d": 2000,
+      "h": 500,
+      "rotation": 0,
+      "color": "#fbcfe8",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-48",
+      "type": "cabinet",
+      "name": "柜子",
+      "x": 9000,
+      "y": 900,
+      "w": 1000,
+      "d": 500,
+      "h": 1800,
+      "rotation": 0,
+      "color": "#f9a8d4",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-49",
+      "type": "desk",
+      "name": "桌子",
+      "x": 7590,
+      "y": 300,
+      "w": 1400,
+      "d": 700,
+      "h": 750,
+      "rotation": 0,
+      "color": "#86efac",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-50",
+      "type": "chair",
+      "name": "椅子",
+      "x": 7800,
+      "y": 900,
+      "w": 500,
+      "d": 500,
+      "h": 900,
+      "rotation": 0,
+      "color": "#bef264",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-51",
+      "type": "custom",
+      "name": "书架",
+      "x": 6890,
+      "y": 2800,
+      "w": 1000,
+      "d": 500,
+      "h": 0,
+      "rotation": 0,
+      "color": "#a3e635",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-52",
+      "type": "bed",
+      "name": "床",
+      "x": 8200,
+      "y": 8800,
+      "w": 1800,
+      "d": 2000,
+      "h": 500,
+      "rotation": 0,
+      "color": "#fbcfe8",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-53",
+      "type": "cabinet",
+      "name": "柜子",
+      "x": 9930,
+      "y": 4250,
+      "w": 1000,
+      "d": 500,
+      "h": 1800,
+      "rotation": 0,
+      "color": "#f9a8d4",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-54",
+      "type": "cabinet",
+      "name": "柜子",
+      "x": 80,
+      "y": 7290,
+      "w": 1000,
+      "d": 500,
+      "h": 1800,
+      "rotation": 0,
+      "color": "#f9a8d4",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-55",
+      "type": "bed",
+      "name": "床",
+      "x": 0,
+      "y": 8800,
+      "w": 1800,
+      "d": 2000,
+      "h": 500,
+      "rotation": 0,
+      "color": "#fbcfe8",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    }
+  ],
+  "walls": [
+    {
+      "id": "wall-7",
+      "points": [
+        [
+          100,
+          0
+        ],
+        [
+          10000,
+          0
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-9",
+      "points": [
+        [
+          0,
+          100
+        ],
+        [
+          10000,
+          100
+        ],
+        [
+          10000,
+          12900
+        ],
+        [
+          0,
+          12900
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-12",
+      "points": [
+        [
+          0,
+          7200
+        ],
+        [
+          3200,
+          7200
+        ],
+        [
+          3200,
+          13000
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-13",
+      "points": [
+        [
+          6900,
+          12900
+        ],
+        [
+          6900,
+          5300
+        ],
+        [
+          9900,
+          5300
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-14",
+      "points": [
+        [
+          10000,
+          4200
+        ],
+        [
+          6800,
+          4200
+        ],
+        [
+          6800,
+          100
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-15",
+      "points": [
+        [
+          0,
+          2300
+        ],
+        [
+          6700,
+          2300
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-34",
+      "points": [
+        [
+          8400,
+          5400
+        ],
+        [
+          8400,
+          7000
+        ],
+        [
+          10000,
+          7000
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-36",
+      "points": [
+        [
+          0,
+          5100
+        ],
+        [
+          1600,
+          5100
+        ],
+        [
+          1600,
+          7200
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    }
+  ],
+  "annotations": []
+}

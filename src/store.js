@@ -2,12 +2,11 @@ import { create } from 'zustand'
 import { SCENES } from './catalog.js'
 import { reflowOpenings } from './utils/layout.js'
 
-// 全局状态中枢 v4.5(多选)
+// 全局状态中枢 v4.6(阵列 / 测量 / 标注 / 导出)
 let _id = 1
 const nextId = (p = 'obj') => p + '-' + _id++
-const snapshot = (s) => JSON.stringify({ objects: s.objects, walls: s.walls })
-const applySnap = (str) => { const d = JSON.parse(str); return { objects: d.objects, walls: d.walls } }
-// selectedId 派生:恰好选中一个时=该id,否则null(单选UI用)
+const snapshot = (s) => JSON.stringify({ objects: s.objects, walls: s.walls, annotations: s.annotations })
+const applySnap = (str) => { const d = JSON.parse(str); return { objects: d.objects, walls: d.walls, annotations: d.annotations || [] } }
 const primary = (ids) => (ids.length === 1 ? ids[0] : null)
 
 export const useStore = create((set, get) => ({
@@ -19,10 +18,11 @@ export const useStore = create((set, get) => ({
   edgeSnap: true,
   showCollision: true,
   ortho: true,
-  tool: 'select',
+  tool: 'select', // 'select' | 'wall' | 'measure' | 'annotate'
   draftWall: null,
   objects: [],
   walls: [],
+  annotations: [], // [{id,x,y,text}]
   selectedIds: [],
   selectedId: null,
   selectedWallId: null,
@@ -129,7 +129,6 @@ export const useStore = create((set, get) => ({
   setSelection: (ids) => set({ selectedIds: ids, selectedId: primary(ids), selectedWallId: null }),
   clearSelection: () => set({ selectedIds: [], selectedId: null }),
 
-  // 整组移动(dx,dy mm)。doCommit=true 时先存历史(键盘微调用)
   moveSelectedBy: (dx, dy, doCommit) => {
     const s = get(); if (!s.selectedIds.length) return
     if (doCommit) get().commit()
@@ -154,11 +153,53 @@ export const useStore = create((set, get) => ({
     const o = s.objects.find((x) => x.id === s.selectedIds[0]); if (!o) return
     get().commit(); get().updateObject(o.id, { rotation: (o.rotation + 90) % 360 })
   },
-  clearAll: () => { get().commit(); set({ objects: [], walls: [], selectedIds: [], selectedId: null, selectedWallId: null, draftWall: null }) },
+
+  // ---- 阵列填充 ----
+  // 基于单个选中对象,生成 nx×ny 个副本。
+  // mode: 'uniform'(统一朝向) | 'brick'(奇数行旋转90°)
+  arrayFill: (nx, ny, gapX, gapY, mode) => {
+    const s = get()
+    if (s.selectedIds.length !== 1) return
+    const src = s.objects.find((o) => o.id === s.selectedIds[0])
+    if (!src || src.isOpening) return
+    nx = Math.max(1, Math.floor(nx)); ny = Math.max(1, Math.floor(ny))
+    gapX = Number(gapX) || 0; gapY = Number(gapY) || 0
+    get().commit()
+    const brick = mode === 'brick'
+    // 步长:统一朝向按 w/d;砖砌为避免重叠按长边
+    const long = Math.max(src.w, src.d)
+    const stepX = brick ? long + gapX : src.w + gapX
+    const stepY = brick ? long + gapY : src.d + gapY
+    const created = []
+    for (let j = 0; j < ny; j++) {
+      for (let i = 0; i < nx; i++) {
+        if (i === 0 && j === 0) continue // 原件保留
+        const rot = brick && (j % 2 === 1) ? 90 : (src.rotation || 0)
+        created.push({
+          ...src, id: nextId(), wallRef: null,
+          x: src.x + i * stepX, y: src.y + j * stepY, rotation: rot
+        })
+      }
+    }
+    // 原件若砖砌,首行不转;保持不变
+    set({ objects: [...s.objects, ...created], selectedIds: [src.id, ...created.map((c) => c.id)], selectedId: null })
+  },
+
+  // ---- 标注 ----
+  addAnnotation: (x, y, text) => {
+    get().commit()
+    const id = nextId('anno')
+    set((s) => ({ annotations: [...s.annotations, { id, x, y, text: text || '标注' }] }))
+    return id
+  },
+  updateAnnotation: (id, patch) => set((s) => ({ annotations: s.annotations.map((a) => (a.id === id ? { ...a, ...patch } : a)) })),
+  removeAnnotation: (id) => { get().commit(); set((s) => ({ annotations: s.annotations.filter((a) => a.id !== id) })) },
+
+  clearAll: () => { get().commit(); set({ objects: [], walls: [], annotations: [], selectedIds: [], selectedId: null, selectedWallId: null, draftWall: null }) },
 
   exportJSON: () => {
     const s = get()
-    return JSON.stringify({ version: '4.5', area: s.area, sceneKey: s.sceneKey, gridMm: s.gridMm, objects: s.objects, walls: s.walls }, null, 2)
+    return JSON.stringify({ version: '4.6', area: s.area, sceneKey: s.sceneKey, gridMm: s.gridMm, objects: s.objects, walls: s.walls, annotations: s.annotations }, null, 2)
   },
   importJSON: (text) => {
     try {
@@ -167,6 +208,7 @@ export const useStore = create((set, get) => ({
         area: d.area || get().area, sceneKey: d.sceneKey || 'custom', gridMm: d.gridMm ?? 100,
         objects: (d.objects || []).map((o) => ({ wallRef: null, ...o, id: o.id || nextId() })),
         walls: (d.walls || []).map((w) => ({ ...w, id: w.id || nextId('wall') })),
+        annotations: (d.annotations || []).map((a) => ({ ...a, id: a.id || nextId('anno') })),
         selectedIds: [], selectedId: null, selectedWallId: null, draftWall: null
       })
       return true

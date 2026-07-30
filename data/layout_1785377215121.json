@@ -1,0 +1,302 @@
+{
+  "version": "4.6",
+  "area": {
+    "w": 10000,
+    "d": 10000
+  },
+  "sceneKey": "custom",
+  "gridMm": 100,
+  "objects": [
+    {
+      "id": "obj-10",
+      "type": "door",
+      "name": "门",
+      "x": 5300,
+      "y": 8940,
+      "w": 1000,
+      "d": 120,
+      "h": 2100,
+      "rotation": 0,
+      "color": "#fbbf24",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-11",
+        "index": 1,
+        "t": 0.42857142857142855
+      }
+    },
+    {
+      "id": "obj-13",
+      "type": "door",
+      "name": "门",
+      "x": 6400,
+      "y": 8653.333333333334,
+      "w": 900,
+      "d": 0,
+      "h": 2100,
+      "rotation": 270,
+      "color": "#fbbf24",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-12",
+        "index": 1,
+        "t": 0.23333333333333334
+      }
+    },
+    {
+      "id": "obj-21",
+      "type": "bed",
+      "name": "床",
+      "x": 700,
+      "y": 870,
+      "w": 1800,
+      "d": 2000,
+      "h": 500,
+      "rotation": 0,
+      "color": "#fbcfe8",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-22",
+      "type": "bed",
+      "name": "床",
+      "x": 3800,
+      "y": 2700,
+      "w": 1800,
+      "d": 2000,
+      "h": 500,
+      "rotation": 270,
+      "color": "#fbcfe8",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    },
+    {
+      "id": "obj-24",
+      "type": "door",
+      "name": "门",
+      "x": 3760,
+      "y": 3110,
+      "w": 500,
+      "d": 50,
+      "h": 2100,
+      "rotation": 90,
+      "color": "#fbbf24",
+      "layer": 0,
+      "isOpening": true,
+      "wallRef": {
+        "wallId": "wall-23",
+        "index": 0,
+        "t": 0.6
+      }
+    },
+    {
+      "id": "obj-26",
+      "type": "bed",
+      "name": "床",
+      "x": 7000,
+      "y": 870,
+      "w": 1500,
+      "d": 1900,
+      "h": 500,
+      "rotation": 0,
+      "color": "#fbcfe8",
+      "layer": 0,
+      "isOpening": false,
+      "wallRef": null
+    }
+  ],
+  "walls": [
+    {
+      "id": "wall-9",
+      "points": [
+        [
+          6600,
+          9000
+        ],
+        [
+          9600,
+          9000
+        ],
+        [
+          9500,
+          800
+        ],
+        [
+          600,
+          800
+        ],
+        [
+          600,
+          9600
+        ],
+        [
+          5200,
+          9600
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-11",
+      "points": [
+        [
+          5200,
+          9600
+        ],
+        [
+          5200,
+          9000
+        ],
+        [
+          6600,
+          9000
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-12",
+      "points": [
+        [
+          6400,
+          9000
+        ],
+        [
+          6400,
+          8600
+        ],
+        [
+          6400,
+          6900
+        ],
+        [
+          5300,
+          6900
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-14",
+      "points": [
+        [
+          6500,
+          6900
+        ],
+        [
+          9600,
+          6900
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-16",
+      "points": [
+        [
+          3700,
+          900
+        ],
+        [
+          3700,
+          3200
+        ],
+        [
+          6900,
+          3200
+        ],
+        [
+          6900,
+          800
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-17",
+      "points": [
+        [
+          6900,
+          4300
+        ],
+        [
+          6900,
+          6800
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-18",
+      "points": [
+        [
+          600,
+          3800
+        ],
+        [
+          3700,
+          3800
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-20",
+      "points": [
+        [
+          3100,
+          9000
+        ],
+        [
+          3100,
+          9500
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-23",
+      "points": [
+        [
+          3700,
+          3200
+        ],
+        [
+          3700,
+          3800
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    },
+    {
+      "id": "wall-25",
+      "points": [
+        [
+          6900,
+          3700
+        ],
+        [
+          9500,
+          3700
+        ]
+      ],
+      "thickness": 100,
+      "h": 2800
+    }
+  ],
+  "annotations": []
+}
